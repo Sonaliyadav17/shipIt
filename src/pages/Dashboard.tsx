@@ -86,9 +86,9 @@ const Dashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 animate-fade-up">
-      {/* Greeting */}
+      {/* Greeting  || "Builder" */ }
       <div>
-        <h1 className="font-heading font-bold text-2xl text-foreground">Good morning, {profile?.name?.split(" ")[0] || "Builder"} 👋</h1>
+        <h1 className="font-heading font-bold text-2xl text-foreground">Hey, {profile?.name?.split(" ")[0]} 👋</h1>
         <p className="text-muted-foreground text-sm mt-1">You have {tasks.filter((t: any) => t.status !== "done").length} active tasks</p>
       </div>
 

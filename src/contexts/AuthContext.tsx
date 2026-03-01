@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, type User as FirebaseUser } from "firebase/auth";
+import { onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut as firebaseSignOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, type User as FirebaseUser } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
 
 interface Profile {
@@ -149,7 +149,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const loginWithGoogle = async (role?: "builder" | "investor") => {
         try {
             setLoading(true);
-            const result = await signInWithPopup(auth, googleProvider);
+            await signInWithRedirect(auth, googleProvider);
+            const result = await getRedirectResult(auth);
+            if (!result) return { error: null };
+            
             const fbUser = result.user;
             if (!fbUser) return { error: "No user returned from Google" };
 
