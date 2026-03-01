@@ -35,6 +35,9 @@ ShipIt provides:
 
 All in one platform.
 
+## Demo Video 
+- https://drive.google.com/file/d/1TVhAnGd3G7dluqIIwFkRQZ7uePOYnHJP/view
+
 ---
 
 ## 🧠 Key Features
