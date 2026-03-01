@@ -21,7 +21,9 @@ const Login = () => {
   // Redirect after successful login when profile is loaded
   useEffect(() => {
     if (user && profile && !isLoading) {
-      if (profile.role === 'builder') {
+      if (!profile.role) {
+        navigate('/select-role');
+      } else if (profile.role === 'builder') {
         navigate('/app');
       } else {
         navigate('/investor');

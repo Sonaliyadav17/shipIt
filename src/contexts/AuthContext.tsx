@@ -1,6 +1,8 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut as firebaseSignOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, type User as FirebaseUser } from "firebase/auth";
+import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
+import { onAuthStateChanged, signInWithRedirect, getRedirectResult, signOut as firebaseSignOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, type User as FirebaseUser } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
+
+const BACKEND_TIMEOUT_MS = 12000;
 
 interface Profile {
     uid: string;
@@ -15,25 +17,92 @@ interface AuthContextType {
     user: FirebaseUser | null;
     profile: Profile | null;
     loading: boolean;
+    backendUnavailable: boolean;
     signOut: () => Promise<void>;
     login: (email: string, password: string) => Promise<{ error: string | null }>;
     signup: (email: string, password: string, fullName: string, role: "builder" | "investor") => Promise<{ error: string | null }>;
     loginWithGoogle: (role?: "builder" | "investor") => Promise<{ error: string | null; needsRole?: boolean }>;
     refreshProfile: () => Promise<Profile | null>;
+    retryBackend: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+async function fetchWithTimeout(url: string, options: RequestInit = {}, ms = BACKEND_TIMEOUT_MS): Promise<Response> {
+    const ctrl = new AbortController();
+    const id = setTimeout(() => ctrl.abort(), ms);
+    try {
+        const res = await fetch(url, { ...options, signal: ctrl.signal });
+        return res;
+    } finally {
+        clearTimeout(id);
+    }
+}
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<FirebaseUser | null>(null);
     const [profile, setProfile] = useState<Profile | null>(null);
     const [loading, setLoading] = useState(true);
+    const [backendUnavailable, setBackendUnavailable] = useState(false);
 
     const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:4000";
+
+    const fetchOrCreateProfile = useCallback(async (fbUser: FirebaseUser): Promise<boolean> => {
+        try {
+            const uid = fbUser.uid;
+            const resp = await fetchWithTimeout(`${API_BASE}/api/auth/user/${uid}`);
+            if (resp.status === 200) {
+                const { user: u } = await resp.json();
+                setProfile({
+                    uid: u.uid,
+                    name: u.name,
+                    email: u.email,
+                    role: u.role || null,
+                    investmentFocus: u.investmentFocus || null,
+                    createdAt: u.createdAt || null,
+                });
+                setBackendUnavailable(false);
+                return true;
+            }
+            if (resp.status === 404) {
+                const createResp = await fetchWithTimeout(`${API_BASE}/api/auth/user`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ uid: fbUser.uid, name: fbUser.displayName, email: fbUser.email }),
+                });
+                if (createResp.ok) {
+                    const { user: u } = await createResp.json();
+                    setProfile({ uid: u.uid, name: u.name, email: u.email, role: u.role || null, createdAt: u.createdAt || null });
+                    setBackendUnavailable(false);
+                    return true;
+                }
+            }
+        } catch (err) {
+            console.error("AuthProvider: failed fetching user profile", err);
+        }
+        return false;
+    }, [API_BASE]);
+
+    useEffect(() => {
+        getRedirectResult(auth).then(async (result) => {
+            if (!result?.user) return;
+            const fbUser = result.user;
+            setUser(fbUser);
+            setLoading(true);
+            setBackendUnavailable(false);
+            const ok = await fetchOrCreateProfile(fbUser);
+            if (!ok) setBackendUnavailable(true);
+            setLoading(false);
+        }).catch((err) => {
+            console.error("getRedirectResult failed", err);
+            setLoading(false);
+        });
+    }, [fetchOrCreateProfile]);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
             setLoading(true);
+            setBackendUnavailable(false);
             if (!fbUser) {
                 setUser(null);
                 setProfile(null);
@@ -41,40 +110,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 return;
             }
             setUser(fbUser);
-            try {
-                const uid = fbUser.uid;
-                const resp = await fetch(`${API_BASE}/api/auth/user/${uid}`);
-                if (resp.status === 200) {
-                    const { user: u } = await resp.json();
-                    setProfile({
-                        uid: u.uid,
-                        name: u.name,
-                        email: u.email,
-                        role: u.role || null,
-                        investmentFocus: u.investmentFocus || null,
-                        createdAt: u.createdAt || null,
-                    });
-                } else if (resp.status === 404) {
-                    // create user on backend
-                    const createResp = await fetch(`${API_BASE}/api/auth/user`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ uid: fbUser.uid, name: fbUser.displayName, email: fbUser.email }),
-                    });
-                    if (createResp.ok) {
-                        const { user: u } = await createResp.json();
-                        setProfile({ uid: u.uid, name: u.name, email: u.email, role: u.role || null, createdAt: u.createdAt || null });
-                    }
-                }
-            } catch (err) {
-                console.error("AuthProvider: failed fetching user profile", err);
-            } finally {
-                setLoading(false);
-            }
+            const ok = await fetchOrCreateProfile(fbUser);
+            if (!ok) setBackendUnavailable(true);
+            setLoading(false);
         });
-
         return () => unsubscribe();
-    }, []);
+    }, [fetchOrCreateProfile]);
+
+    useEffect(() => {
+        if (!loading) return;
+        const id = setTimeout(() => {
+            setLoading((prev) => {
+                if (prev) setBackendUnavailable(true);
+                return false;
+            });
+        }, BACKEND_TIMEOUT_MS);
+        return () => clearTimeout(id);
+    }, [loading]);
 
     const signOut = async () => {
         try {
@@ -83,6 +135,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         } finally {
             setUser(null);
             setProfile(null);
+            setBackendUnavailable(false);
             setLoading(false);
         }
     };
@@ -93,7 +146,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             const cred = await signInWithEmailAndPassword(auth, email, password);
             const fbUser = cred.user;
             if (!fbUser) return { error: "Login failed" };
-            // fetch profile from backend
             try {
                 const resp = await fetch(`${API_BASE}/api/auth/user/${fbUser.uid}`);
                 if (resp.ok) {
@@ -122,8 +174,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             const cred = await createUserWithEmailAndPassword(auth, email, password);
             const fbUser = cred.user;
             if (!fbUser) return { error: "Signup failed" };
-
-            // create user in backend with provided role
             try {
                 const resp = await fetch(`${API_BASE}/api/auth/user`, {
                     method: "POST",
@@ -137,7 +187,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             } catch (e) {
                 console.error("Failed to create backend user on signup", e);
             }
-
             return { error: null };
         } catch (err: any) {
             return { error: err.message || "Signup failed" };
@@ -146,49 +195,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
-    const loginWithGoogle = async (role?: "builder" | "investor") => {
-        try {
-            setLoading(true);
-            await signInWithRedirect(auth, googleProvider);
-            const result = await getRedirectResult(auth);
-            if (!result) return { error: null };
-            
-            const fbUser = result.user;
-            if (!fbUser) return { error: "No user returned from Google" };
-
-            // Send to backend to check/create
-            const resp = await fetch(`${API_BASE}/api/auth/user`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ uid: fbUser.uid, name: fbUser.displayName, email: fbUser.email }),
-            });
-            if (!resp.ok) {
-                const err = await resp.json().catch(() => ({}));
-                return { error: err.error || "Failed to contact backend" };
-            }
-            const body = await resp.json();
-            const userFromDb = body.user;
-            setProfile({ uid: userFromDb.uid, name: userFromDb.name, email: userFromDb.email, role: userFromDb.role || null, createdAt: userFromDb.createdAt || null });
-            if (body.needsRole) {
-                return { error: null, needsRole: true };
-            }
-            return { error: null };
-        } catch (err: any) {
-            console.error("Google login failed", err);
-            return { error: err.message || "Google login failed" };
-        } finally {
-            setLoading(false);
-        }
+    const loginWithGoogle = async (_role?: "builder" | "investor") => {
+        setLoading(true);
+        await signInWithRedirect(auth, googleProvider);
+        return { error: null };
     };
 
     const refreshProfile = async () => {
         if (!user) return null;
         try {
-            const resp = await fetch(`${API_BASE}/api/auth/user/${user.uid}`);
+            const resp = await fetchWithTimeout(`${API_BASE}/api/auth/user/${user.uid}`);
             if (resp.ok) {
                 const { user: u } = await resp.json();
                 const p = { uid: u.uid, name: u.name, email: u.email, role: u.role || null, investmentFocus: u.investmentFocus || null, createdAt: u.createdAt || null } as Profile;
                 setProfile(p);
+                setBackendUnavailable(false);
                 return p;
             }
         } catch (err) {
@@ -197,8 +218,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return null;
     };
 
+    const retryBackend = async () => {
+        if (!user) return;
+        setBackendUnavailable(false);
+        setLoading(true);
+        const ok = await fetchOrCreateProfile(user);
+        if (!ok) setBackendUnavailable(true);
+        setLoading(false);
+    };
+
     return (
-        <AuthContext.Provider value={{ user, profile, loading, signOut, login, signup, loginWithGoogle, refreshProfile }}>
+        <AuthContext.Provider value={{ user, profile, loading, backendUnavailable, signOut, login, signup, loginWithGoogle, refreshProfile, retryBackend }}>
             {children}
         </AuthContext.Provider>
     );
