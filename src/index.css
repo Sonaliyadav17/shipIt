@@ -1,0 +1,176 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222 20% 5%;
+    --foreground: 210 20% 95%;
+
+    --card: 222 18% 8%;
+    --card-foreground: 210 20% 95%;
+
+    --popover: 222 18% 10%;
+    --popover-foreground: 210 20% 95%;
+
+    --primary: 217 90% 64%;
+    --primary-foreground: 222 20% 5%;
+
+    --secondary: 222 14% 14%;
+    --secondary-foreground: 210 20% 85%;
+
+    --muted: 222 14% 12%;
+    --muted-foreground: 215 12% 50%;
+
+    --accent: 160 100% 45%;
+    --accent-foreground: 222 20% 5%;
+
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 210 20% 95%;
+
+    --border: 222 14% 16%;
+    --input: 222 14% 16%;
+    --ring: 217 90% 64%;
+
+    --radius: 0.375rem;
+
+    --sidebar-background: 222 18% 6%;
+    --sidebar-foreground: 215 12% 65%;
+    --sidebar-primary: 217 90% 64%;
+    --sidebar-primary-foreground: 210 20% 95%;
+    --sidebar-accent: 222 14% 12%;
+    --sidebar-accent-foreground: 210 20% 85%;
+    --sidebar-border: 222 14% 14%;
+    --sidebar-ring: 217 90% 64%;
+
+    /* Custom tokens */
+    --warning: 38 92% 50%;
+    --warning-foreground: 222 20% 5%;
+    --success: 160 100% 45%;
+    --success-foreground: 222 20% 5%;
+    --info: 217 90% 64%;
+    --info-foreground: 222 20% 5%;
+
+    /* Gradient tokens */
+    --gradient-primary: linear-gradient(135deg, hsl(217, 90%, 64%), hsl(160, 100%, 45%));
+    --gradient-hero: linear-gradient(180deg, hsl(222, 20%, 5%) 0%, hsl(222, 25%, 8%) 50%, hsl(220, 20%, 6%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(222, 18%, 10%) 0%, hsl(222, 18%, 8%) 100%);
+    --gradient-glow-blue: radial-gradient(ellipse at 50% 50%, hsl(217, 90%, 64%, 0.15) 0%, transparent 70%);
+    --gradient-glow-green: radial-gradient(ellipse at 50% 80%, hsl(160, 100%, 45%, 0.08) 0%, transparent 60%);
+
+    /* Shadows */
+    --shadow-card: 0 1px 3px hsl(0 0% 0% / 0.3), 0 0 0 1px hsl(222, 14%, 16%);
+    --shadow-elevated: 0 8px 32px hsl(0 0% 0% / 0.4);
+  }
+
+  .dark {
+    /* Already dark-first, same values */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Sora', sans-serif;
+    @apply tracking-tight;
+  }
+
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+@layer components {
+  .section-badge {
+    @apply inline-flex items-center px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] rounded border;
+  }
+
+  .section-badge-blue {
+    @apply section-badge text-primary border-primary/30 bg-primary/10;
+  }
+
+  .section-badge-green {
+    @apply section-badge text-accent border-accent/30 bg-accent/10;
+  }
+
+  .gradient-text {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-primary);
+  }
+
+  .card-glow {
+    @apply relative overflow-hidden;
+  }
+
+  .card-glow::before {
+    content: '';
+    @apply absolute top-0 left-0 right-0 h-[2px];
+  }
+
+  .glow-blue::before { @apply bg-primary; }
+  .glow-green::before { @apply bg-accent; }
+  .glow-orange::before { background: hsl(var(--warning)); }
+  .glow-pink::before { background: hsl(320, 80%, 55%); }
+  .glow-cyan::before { background: hsl(190, 90%, 50%); }
+  .glow-purple::before { background: hsl(270, 70%, 60%); }
+
+  .status-todo { @apply bg-primary/15 text-primary; }
+  .status-progress { @apply bg-[hsl(var(--warning))]/15 text-[hsl(var(--warning))]; }
+  .status-blocked { @apply bg-destructive/15 text-destructive; }
+  .status-done { @apply bg-accent/15 text-accent; }
+
+  .priority-high { @apply bg-destructive/15 text-destructive; }
+  .priority-medium { @apply bg-[hsl(var(--warning))]/15 text-[hsl(var(--warning))]; }
+  .priority-low { @apply bg-accent/15 text-accent; }
+}
+
+@layer utilities {
+  .animate-fade-up {
+    animation: fadeUp 0.6s ease-out both;
+  }
+
+  .animate-fade-up-delay-1 {
+    animation: fadeUp 0.6s ease-out 0.1s both;
+  }
+
+  .animate-fade-up-delay-2 {
+    animation: fadeUp 0.6s ease-out 0.2s both;
+  }
+
+  .animate-fade-up-delay-3 {
+    animation: fadeUp 0.6s ease-out 0.3s both;
+  }
+
+  .animate-fade-up-delay-4 {
+    animation: fadeUp 0.6s ease-out 0.4s both;
+  }
+
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(2deg); }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.8; }
+  }
+}
