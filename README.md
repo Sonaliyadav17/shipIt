@@ -1,118 +1,158 @@
-# Welcome to your project
+# 🚀 ShipIt
 
-## Project info
+> Build Faster. Fund Smarter. Ship Together.
 
-**URL**: REPLACE_WITH_YOUR_PROJECT_URL
+ShipIt is an execution intelligence platform that transforms raw ideas into structured project plans, enables real-time execution tracking, and connects builders with investors — all in one unified workflow.
 
-## How can I edit this code?
+---
 
-There are a few common ways to work on this application.
+## 🌟 Problem
 
-### Local development
+Ideas often remain stuck in notes.
 
-1. Clone the repository:
-   ```sh
-   git clone <YOUR_GIT_URL>
-   ```
-2. Enter the project folder:
-   ```sh
-   cd <YOUR_PROJECT_NAME>
-   ```
-3. Install dependencies:
-   ```sh
-   npm install
-   ```
-4. Start the dev server:
-   ```sh
-   npm run dev
-   ```
+- No structured planning  
+- Tasks get stuck unnoticed  
+- Teams use multiple disconnected tools  
+- Execution progress is unclear  
+- No reliable proof of execution for investors  
 
-Changes can be committed and pushed normally; any deployment pipeline you
-have configured will pick them up.
+ShipIt reduces friction between:
 
-### Editing on GitHub
+Thinking → Planning → Execution → Funding
 
-- Open the file in the GitHub UI.
-- Click the pencil icon to edit.
-- Commit your changes directly or create a branch/PR.
+---
 
-### Codespaces
+## 💡 Solution
 
-1. Click the green **Code** button on your repository page.
-2. Choose **Codespaces** and create a new environment.
-3. Edit files inside the codespace and push when ready.
+ShipIt provides:
 
-## Technologies used
+- 🧠 AI-powered idea → project plan generator  
+- 📋 Structured task management  
+- 📊 Real-time execution analytics  
+- 🔨 Builder execution profiles  
+- 🏪 Live investor marketplace  
+- ⚖ Built-in digital NOC agreement system  
 
+All in one platform.
+
+---
+
+## 🧠 Key Features
+
+### 1️⃣ AI Plan & Pitch Generator
+Write a raw idea in Thinking Space and get:
+- Project roadmap
+- Milestones
+- Task breakdown
+- Timeline
+- Business pitch
+- Risk analysis
+
+Powered by Groq API (Llama 3.1).
+
+---
+
+### 2️⃣ Smart Execution Monitoring
+- Detect stuck tasks
+- Track execution progress
+- Consistency streak analytics
+- Project health indicators
+
+---
+
+### 3️⃣ Builder Workflow
+Raw Idea → AI Plan → Task Execution → Analytics → Go Live
+
+---
+
+### 4️⃣ Investor Marketplace
+- Discover live projects
+- Filter by domain & stage
+- View AI-generated business pitch
+- Express investment interest
+
+---
+
+### 5️⃣ Digital NOC Agreement System
+- Auto-generated legal agreement
+- Digital signatures
+- PDF download
+- Immutable agreement storage
+
+---
+
+## 🛠 Tech Stack
+
+### Frontend
+- React
 - Vite
 - TypeScript
-- React
-- shadcn-ui
 - Tailwind CSS
 
-## Deployment
+### Backend
+- Node.js
+- Express.js
+- JWT Authentication
+- Firebase Google Auth
 
-Build the production bundle:
+### Database
+- MongoDB Atlas
+- Mongoose ODM
 
-```sh
-npm run build
-```
+### AI & Real-Time
+- Groq API (Llama 3.1)
+- Socket.io (WebSockets)
 
-Then upload the `dist` output to your hosting provider (Netlify, Vercel, GitHub
-Pages, etc.) and follow their documentation to publish.
-
-## Custom domain
-
-Most hosting platforms allow you to configure a custom domain via their
-settings page. Refer to your provider's docs for specific steps.
-
----
-n
-## Firebase Setup
-
-This project now uses Firebase for authentication and Firestore for user
-profiles. To get started:
-
-1. Create a Firebase project in the [Firebase console](https://console.firebase.google.com/).
-2. Enable **Authentication** (Email/Password and Google providers) and create a **Firestore** database.
-3. Copy your configuration values (apiKey, authDomain, projectId, etc.) from the project settings.
-4. Add them to your environment file (e.g. `.env`) using the `VITE_` prefix so Vite can access them:
-   ```
-   VITE_FIREBASE_API_KEY=...
-   VITE_FIREBASE_AUTH_DOMAIN=...
-   VITE_FIREBASE_PROJECT_ID=...
-   VITE_FIREBASE_STORAGE_BUCKET=...
-   VITE_FIREBASE_MESSAGING_SENDER_ID=...
-   VITE_FIREBASE_APP_ID=...
-   ```
-5. Restart the dev server after updating the env variables.
-
-The helper file `src/lib/firebase.ts` will read these vars and initialize the SDK.
+### Services
+- Nodemailer (Gmail SMTP)
+- jsPDF (Agreement generation)
 
 ---
 
-## MongoDB Setup (server)
+## 🗂 Database Collections
 
-The backend uses an Atlas cluster for persisting users. You must provide a
-connection string in an environment variable named `MONGODB_URI`.
+- users
+- projects
+- tasks
+- thinkingNotes
+- investments
+- agreements
+- notifications
 
-1. Create an [Atlas](https://www.mongodb.com/cloud/atlas) project and cluster.
-2. Add your IP address to the **Network Access** whitelist (or use `0.0.0.0/0` for testing).
-3. Create a database user (e.g. `shipitadmin`) and note the password.
-4. Click **Connect → Connect your application** and copy the connection string.
-   It will look like:
-   ```text
-   mongodb+srv://<user>:<password>@cluster0.79thk0e.mongodb.net/shipit?retryWrites=true&w=majority
-   ```
-   Paste that into `server/.env` (or the project root `.env`) replacing `<password>`.
+---
 
-5. If you run into DNS errors (`querySrv ECONNREFUSED`) the server now overrides the resolver and logs a helpful hint. You can also replace the SRV form with an explicit non‑SRV URI from Atlas (it’s listed just below the snippet above).
+## 🔄 Builder Workflow
 
-6. Start the backend:
-   ```sh
-   cd server
-   npm install
-   npm start
-   ```
+1. Write raw idea in Thinking Space
+2. Generate AI plan & business pitch
+3. Execute tasks & track progress
+4. Toggle investment ON
+5. Accept investor interest
+6. Auto-generate and sign NOC
+7. Download final agreement
 
-The code in `server/index.js` sets DNS servers to 8.8.8.8/1.1.1.1 automatically which usually fixes connection problems on restrictive networks.
+---
+
+## 🔐 Authentication
+
+- Secure login & signup
+- Google OAuth integration
+- JWT-based protected routes
+
+---
+
+## ⚡ Real-Time Features
+
+- Live marketplace updates via WebSockets
+- Instant notifications
+- Execution status sync
+
+---
+
+## 🚀 Getting Started (Local Setup)
+
+### 1️⃣ Clone the Repository
+
+```bash
+git clone https://github.com/your-username/shipit.git
+cd shipit
