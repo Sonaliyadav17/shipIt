@@ -38,6 +38,9 @@ All in one platform.
 ## Demo Video 
 - https://drive.google.com/file/d/1TVhAnGd3G7dluqIIwFkRQZ7uePOYnHJP/view
 
+## Design Work Flow
+- https://spoke-domain-62017373.figma.site/
+
 ---
 
 ## 🧠 Key Features
