@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import path from "path";
 import mongoose from "mongoose";
 import dns from "dns";
 import fs from 'fs';
@@ -1221,5 +1222,16 @@ app.get("/api/activity/feed/:uid", async (req, res) => {
     return res.status(500).json({ error: "Server error Activity Feed" });
   }
 });
+
+// SPA fallback: serve built frontend so /login and other client routes work when deployed as one app
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const distPath = path.join(__dirname, "..", "dist");
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+  app.get("*", (req, res, next) => {
+    if (req.path.startsWith("/api")) return next();
+    res.sendFile(path.join(distPath, "index.html"));
+  });
+}
 
 // NOTE: server listen is started after successful DB connection above

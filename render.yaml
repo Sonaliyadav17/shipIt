@@ -1,0 +1,14 @@
+# Render Blueprint — fix "Not Found" on direct links like /login
+# For static site: all routes are rewritten to /index.html so React Router can handle them.
+# See: https://render.com/docs/redirects-rewrites
+
+services:
+  - type: web
+    name: shipit-frontend
+    runtime: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
